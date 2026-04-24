@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jo Gwang-geun — Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Noto+Serif+KR:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #080808;
+    --surface: #111111;
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.15);
+    --text-primary: #f0ede6;
+    --text-secondary: rgba(240,237,230,0.45);
+    --text-muted: rgba(240,237,230,0.22);
+    --accent: #c8b89a;
+    --accent-dim: rgba(200,184,154,0.12);
+    --accent-glow: rgba(200,184,154,0.06);
+    --red: #d4614a;
+    --green: #5c9e78;
+    --mono: 'DM Mono', monospace;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --serif-kr: 'Noto Serif KR', serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    cursor: none;
+    overflow-x: hidden;
+  }
+
+  /* ── custom cursor ── */
+  #cursor {
+    position: fixed;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.08s ease, width 0.2s ease, height 0.2s ease, background 0.2s ease;
+    mix-blend-mode: screen;
+  }
+  #cursor-ring {
+    position: fixed;
+    width: 32px; height: 32px;
+    border: 1px solid rgba(200,184,154,0.35);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.18s ease, width 0.25s ease, height 0.25s ease, opacity 0.2s ease;
+  }
+  body.hovering #cursor { width: 12px; height: 12px; background: #fff; }
+  body.hovering #cursor-ring { width: 48px; height: 48px; opacity: 0.5; }
+
+  /* ── noise overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.025;
+    pointer-events: none;
+    z-index: 9000;
+  }
+
+  /* ── grid lines ── */
+  .grid-lines {
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── layout ── */
+  .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+
+  /* ── header ── */
+  header {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 20px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(8,8,8,0.85);
+    backdrop-filter: blur(12px);
+  }
+  .logo {
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--text-primary);
+    letter-spacing: 0.01em;
+  }
+  .logo span { color: var(--accent); font-style: italic; }
+  nav { display: flex; gap: 28px; }
+  nav a {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    position: relative;
+  }
+  nav a::after {
+    content: '';
+    position: absolute; bottom: -2px; left: 0; right: 0;
+    height: 1px; background: var(--accent);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  nav a:hover { color: var(--text-primary); }
+  nav a:hover::after { transform: scaleX(1); }
+  .status-dot {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--text-muted);
+  }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+  /* ── hero ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 0;
+    padding-bottom: 80px;
+    padding-top: 100px;
+  }
+  .hero-inner { max-width: 1100px; margin: 0 auto; padding: 0 40px; width: 100%; }
+
+  .eyebrow {
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 32px;
+    opacity: 0; animation: fade-up 0.8s 0.2s forwards;
+  }
+  .eyebrow::before {
+    content: '';
+    display: block; width: 32px; height: 1px;
+    background: var(--accent);
+  }
+
+  .hero-name {
+    font-family: var(--serif);
+    font-size: clamp(52px, 8vw, 108px);
+    font-weight: 400;
+    line-height: 0.92;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    opacity: 0; animation: fade-up 0.9s 0.35s forwards;
+  }
+  .hero-name .kr {
+    font-family: var(--serif-kr);
+    font-size: 0.45em;
+    color: var(--text-secondary);
+    display: block;
+    letter-spacing: 0.08em;
+    margin-top: 12px;
+  }
+  .hero-name em { color: var(--accent); }
+
+  .hero-meta {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-top: 48px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    opacity: 0; animation: fade-up 1s 0.6s forwards;
+  }
+  .hero-desc {
+    max-width: 360px;
+    font-size: 13px; line-height: 1.8;
+    color: var(--text-secondary);
+  }
+  .hero-desc strong { color: var(--accent); font-weight: 400; }
+  .hero-stats { display: flex; gap: 40px; }
+  .stat { text-align: right; }
+  .stat-num {
+    font-family: var(--serif); font-size: 36px; font-style: italic;
+    color: var(--text-primary); line-height: 1;
+  }
+  .stat-label { font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── section commons ── */
+  section { padding: 100px 0; border-top: 1px solid var(--border); }
+  .section-tag {
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 48px;
+  }
+  .section-tag::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .section-heading {
+    font-family: var(--serif); font-size: clamp(32px, 4vw, 52px);
+    font-weight: 400; line-height: 1.1;
+    margin-bottom: 56px;
+  }
+  .section-heading em { color: var(--accent); font-style: italic; }
+
+  /* ── work cards ── */
+  .work-list { display: flex; flex-direction: column; gap: 1px; }
+  .work-item {
+    display: grid; grid-template-columns: 80px 1fr auto;
+    align-items: center; gap: 32px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .work-item::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--accent-glow);
+    transform: translateX(-100%);
+    transition: transform 0.4s ease;
+  }
+  .work-item:hover::before { transform: translateX(0); }
+  .work-item:hover .work-title { color: var(--accent); }
+  .work-num { font-size: 11px; color: var(--text-muted); letter-spacing: 0.1em; }
+  .work-info { position: relative; }
+  .work-title { font-family: var(--serif); font-size: 22px; font-weight: 400; margin-bottom: 4px; transition: color 0.2s; }
+  .work-sub { font-size: 11px; color: var(--text-secondary); }
+  .work-tags { display: flex; gap: 6px; }
+  .tag {
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 4px 10px; border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 2px;
+  }
+  .tag-accent { border-color: rgba(200,184,154,0.25); color: var(--accent); }
+
+  /* ── about grid ── */
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
+  .about-cell {
+    background: var(--bg);
+    padding: 32px;
+    transition: background 0.2s;
+  }
+  .about-cell:hover { background: var(--surface); }
+  .about-cell-label { font-size: 10px; color: var(--text-muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 16px; }
+  .about-cell-content { font-size: 14px; color: var(--text-secondary); line-height: 1.8; }
+  .about-cell-content strong { color: var(--text-primary); font-weight: 400; }
+
+  /* ── skills ── */
+  .skill-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 0; border-bottom: 1px solid var(--border);
+  }
+  .skill-name { width: 200px; font-size: 12px; color: var(--text-secondary); }
+  .skill-bar { flex: 1; height: 1px; background: var(--border); position: relative; }
+  .skill-fill {
+    position: absolute; left: 0; top: 0; height: 1px;
+    background: var(--accent);
+    transform-origin: left;
+    transform: scaleX(0);
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .skill-bar.animate .skill-fill { transform: scaleX(1); }
+  .skill-pct { font-size: 11px; color: var(--text-muted); width: 36px; text-align: right; }
+
+  /* ── contact ── */
+  .contact-box {
+    border: 1px solid var(--border);
+    padding: 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .contact-box::before {
+    content: '';
+    position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(200,184,154,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .contact-headline {
+    font-family: var(--serif); font-size: clamp(36px, 5vw, 64px);
+    font-weight: 400; line-height: 1.1; margin-bottom: 24px;
+  }
+  .contact-headline em { color: var(--accent); }
+  .contact-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 40px; }
+  .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; font-size: 11px; font-family: var(--mono);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    text-decoration: none; cursor: pointer; border: none;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #080808; }
+  .btn-primary:hover { background: #e8d4b8; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+  .btn-outline:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+  /* ── footer ── */
+  footer {
+    padding: 32px 40px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-copy { font-size: 11px; color: var(--text-muted); }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { font-size: 11px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--text-primary); }
+
+  /* ── ticker ── */
+  .ticker-wrap {
+    background: var(--accent); color: #080808;
+    overflow: hidden; white-space: nowrap;
+    padding: 10px 0;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .ticker-inner {
+    display: inline-flex;
+    animation: ticker 28s linear infinite;
+  }
+  .ticker-inner span { padding: 0 40px; }
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ── reveal ── */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease, transform 0.8s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div class="grid-lines"></div>
+
+<!-- Header -->
+<header>
+  <div class="logo">Jo<span> Gwang-geun</span></div>
+  <nav>
+    <a href="#work">Work</a>
+    <a href="#about">About</a>
+    <a href="#skills">Skills</a>
+    <a href="#contact">Contact</a>
+  </nav>
+  <div class="status-dot">
+    <span class="dot"></span>
+    Available for collaboration
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Startup Educator · Investor · Author</div>
+    <h1 class="hero-name">
+      Jo Gwang<em>-geun</em>
+      <span class="kr">조 · 광 · 근</span>
+    </h1>
+    <div class="hero-meta">
+      <p class="hero-desc">
+        Professor at <strong>Gangwon Provincial University</strong>.<br>
+        Director of Startup Incubation Center.<br>
+        Building <strong>entrepreneurship ecosystems</strong> in Gangwon for over 20 years.
+      </p>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-num">20+</div>
+          <div class="stat-label">Years of experience</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">1</div>
+          <div class="stat-label">Book published</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">Startups supported</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Ticker -->
+<div class="ticker-wrap">
+  <div class="ticker-inner">
+    <span>Startup Incubation</span><span>·</span>
+    <span>RISE Project</span><span>·</span>
+    <span>Investment Advisory</span><span>·</span>
+    <span>Entrepreneurship Education</span><span>·</span>
+    <span>강원 창업 생태계</span><span>·</span>
+    <span>Kendo</span><span>·</span>
+    <span>Startup Incubation</span><span>·</span>
+    <span>·</span>
+    <span>RISE Project</span><span>·</span>
+    <span>Investment Advisory</span><span>·</span>
+    <span>Entrepreneurship Education</span><span>·</span>
+    <span>강원 창업 생태계</span><span>·</span>
+    <span>Kendo</span><span>·</span>
+  </div>
+</div>
+
+<!-- Work -->
+<section id="work">
+  <div class="wrapper">
+    <div class="section-tag">Selected work</div>
+    <h2 class="section-heading reveal">Projects &<br><em>Initiatives</em></h2>
+
+    <div class="work-list reveal">
+      <div class="work-item">
+        <div class="work-num">01</div>
+        <div class="work-info">
+          <div class="work-title">Gangwon RISE Project</div>
+          <div class="work-sub">Regional Innovation Strategy for Education — Technology Startup Hub Lead</div>
+        </div>
+        <div class="work-tags">
+          <span class="tag tag-accent">RISE</span>
+          <span class="tag">Education</span>
+        </div>
+      </div>
+      <div class="work-item">
+        <div class="work-num">02</div>
+        <div class="work-info">
+          <div class="work-title">모두의창업 Program</div>
+          <div class="work-sub">Everyone's Startup — Gangwon Provincial University incubation initiative</div>
+        </div>
+        <div class="work-tags">
+          <span class="tag tag-accent">Incubation</span>
+          <span class="tag">Community</span>
+        </div>
+      </div>
+      <div class="work-item">
+        <div class="work-num">03</div>
+        <div class="work-info">
+          <div class="work-title">부와 성공의 열쇠</div>
+          <div class="work-sub">0에서 1을 만드는 창업 철학 실전 명제 — Published startup philosophy book</div>
+        </div>
+        <div class="work-tags">
+          <span class="tag tag-accent">Author</span>
+          <span class="tag">Philosophy</span>
+        </div>
+      </div>
+      <div class="work-item">
+        <div class="work-num">04</div>
+        <div class="work-info">
+          <div class="work-title">Marine Fisheries Startup Support</div>
+          <div class="work-sub">2026 강원 해양수산 창업·투자지원사업 — Evaluation & advisory</div>
+        </div>
+        <div class="work-tags">
+          <span class="tag tag-accent">Investment</span>
+          <span class="tag">Advisory</span>
+        </div>
+      </div>
+      <div class="work-item">
+        <div class="work-num">05</div>
+        <div class="work-info">
+          <div class="work-title">Jumunjin Dokkaebi Tech School</div>
+          <div class="work-sub">주문진 도깨비 테크창업학교 — AI & maker entrepreneurship curriculum</div>
+        </div>
+        <div class="work-tags">
+          <span class="tag tag-accent">Curriculum</span>
+          <span class="tag">AI</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about">
+  <div class="wrapper">
+    <div class="section-tag">About</div>
+    <h2 class="section-heading reveal">Who I <em>am</em></h2>
+    <div class="about-grid reveal">
+      <div class="about-cell">
+        <div class="about-cell-label">Role</div>
+        <div class="about-cell-content">
+          <strong>Professor & Director</strong> at Gangwon Provincial University.<br>
+          Leading the Startup Incubation Center and RCC Local Startup Center.
+        </div>
+      </div>
+      <div class="about-cell">
+        <div class="about-cell-label">Focus</div>
+        <div class="about-cell-content">
+          Building <strong>regional startup ecosystems</strong> in Gangwon — connecting education, investment, and community.
+        </div>
+      </div>
+      <div class="about-cell">
+        <div class="about-cell-label">Philosophy</div>
+        <div class="about-cell-content">
+          Entrepreneurship is not about profit alone —<br>
+          it is about <strong>creating value from zero</strong>, with purpose.
+        </div>
+      </div>
+      <div class="about-cell">
+        <div class="about-cell-label">Beyond work</div>
+        <div class="about-cell-content">
+          Practitioner of <strong>kendo (검도)</strong>.<br>
+          Author. Mentor. Member of the Changnyeong Jo clan.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Skills -->
+<section id="skills">
+  <div class="wrapper">
+    <div class="section-tag">Expertise</div>
+    <h2 class="section-heading reveal">Core <em>Skills</em></h2>
+    <div class="reveal" id="skill-list">
+      <div class="skill-row">
+        <div class="skill-name">Startup Incubation</div>
+        <div class="skill-bar"><div class="skill-fill" style="width:95%"></div></div>
+        <div class="skill-pct">95%</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">Curriculum Development</div>
+        <div class="skill-bar"><div class="skill-fill" style="width:90%"></div></div>
+        <div class="skill-pct">90%</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">Investment Advisory</div>
+        <div class="skill-bar"><div class="skill-fill" style="width:82%"></div></div>
+        <div class="skill-pct">82%</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">Policy & Government Projects</div>
+        <div class="skill-bar"><div class="skill-fill" style="width:88%"></div></div>
+        <div class="skill-pct">88%</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">AI & Data Automation</div>
+        <div class="skill-bar"><div class="skill-fill" style="width:75%"></div></div>
+        <div class="skill-pct">75%</div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-name">Writing & Publishing</div>
+        <div class="skill-bar"><div class="skill-fill" style="width:86%"></div></div>
+        <div class="skill-pct">86%</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact">
+  <div class="wrapper">
+    <div class="contact-box reveal">
+      <h2 class="contact-headline">Let's build<br><em>something</em> together</h2>
+      <p class="contact-sub">Open to collaboration, advisory roles, and speaking engagements.</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="mailto:hello@example.com">Send a message →</a>
+        <a class="btn btn-outline" href="#">Download CV</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-copy">© 2026 Jo Gwang-geun. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="#">LinkedIn</a>
+    <a href="#">Instagram</a>
+    <a href="#">Book</a>
+  </div>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animCursor() {
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animCursor);
+  }
+  animCursor();
+  document.querySelectorAll('a, button, .work-item, .about-cell, .btn').forEach(el => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  reveals.forEach(r => obs.observe(r));
+
+  // Skill bar animation
+  const skillList = document.getElementById('skill-list');
+  const skillObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        document.querySelectorAll('.skill-bar').forEach(b => b.classList.add('animate'));
+      }
+    });
+  }, { threshold: 0.3 });
+  skillObs.observe(skillList);
+</script>
+</body>
+</html>
